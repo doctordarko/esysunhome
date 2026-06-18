@@ -1,0 +1,78 @@
+name: Auto Release and Version Bump
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**'
+      - 'tests/**'
+      - '.gitignore'
+      - 'README.md'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history and tags
+
+      - name: Calculate next version
+        id: calc_version
+        run: |
+          # Get current Year.Month
+          YEAR_MONTH=$(date +'%Y.%m')
+          echo "Year-Month: $YEAR_MONTH"
+          
+          # Fetch tags from remote
+          git fetch --tags
+          
+          # Find the latest tag matching the current Year.Month
+          LATEST_TAG=$(git tag -l "${YEAR_MONTH}.*" | sort -V | tail -n 1)
+          
+          if [ -z "$LATEST_TAG" ]; then
+            # Start with .1 if no tag exists for the current month
+            PATCH=1
+          else
+            # Extract the patch number and increment it
+            PATCH=$(echo "$LATEST_TAG" | awk -F. '{print $3}')
+            PATCH=$((PATCH + 1))
+          fi
+          
+          NEW_VERSION="${YEAR_MONTH}.${PATCH}"
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "Calculated New Version: $NEW_VERSION"
+
+      - name: Update manifest.json
+        run: |
+          MANIFEST_PATH="custom_components/esy_sunhome/manifest.json"
+          # Use jq to update the version key in manifest.json
+          jq --arg ver "$NEW_VERSION" '.version = $ver' "$MANIFEST_PATH" > temp.json && mv temp.json "$MANIFEST_PATH"
+          echo "Updated manifest.json version to $NEW_VERSION"
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add custom_components/esy_sunhome/manifest.json
+          git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+          git push origin main
+
+      - name: Create Git Tag
+        run: |
+          git tag "$NEW_VERSION"
+          git push origin "$NEW_VERSION"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create the release and automatically generate notes based on git logs
+          gh release create "$NEW_VERSION" \
+            --title "$NEW_VERSION" \
+            --generate-notes
