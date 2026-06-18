@@ -172,11 +172,11 @@ class ESYSunhomeBEMScheduleSwitch(EsySunhomeEntity, SwitchEntity):
         icon: str,
     ) -> None:
         """Initialize the switch."""
-        super().__init__(coordinator)
         self._category = category
         self._attr_translation_key = translation_key
         self._attr_name = name
         self._attr_icon = icon
+        super().__init__(coordinator)
         self._attr_unique_id = f"{entry.entry_id}_bem_{category}_schedule"
 
     @property
