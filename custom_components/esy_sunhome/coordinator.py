@@ -556,3 +556,78 @@ class ESYSunhomeCoordinator(DataUpdateCoordinator):
         # If enabling polling and MQTT is connected, send an immediate poll
         if enabled and self._mqtt_connected:
             asyncio.create_task(self._send_poll_request())
+
+    def get_bem_schedule_time(self, category: str, boundary: str) -> Any:
+        """Get start or end time for a BEM schedule category."""
+        from datetime import time
+        if not self.schedule_data:
+            return None
+        quantum_list = self.schedule_data.get(f"{category}TimeQuantum")
+        if not quantum_list:
+            return None
+        minutes = quantum_list[0].get(boundary)
+        if minutes is None:
+            return None
+        return time(hour=int(minutes // 60), minute=int(minutes % 60))
+
+    async def set_bem_schedule_time(self, category: str, boundary: str, val_time: Any) -> None:
+        """Set start or end time for a BEM schedule category via API."""
+        minutes = val_time.hour * 60 + val_time.minute
+        schedule = await self.api.get_schedule()
+        quantum_list = schedule.get(f"{category}TimeQuantum")
+        
+        if not quantum_list:
+            # Initialize default time period if empty (default: 06:00 to 08:00)
+            default_block = {"start": 360, "end": 480, "sort": 0, "soc": 50, "electric": 0}
+            default_block[boundary] = minutes
+            schedule[f"{category}TimeQuantum"] = [default_block]
+        else:
+            quantum_list[0][boundary] = minutes
+            
+        await self.api.save_schedule(schedule)
+        self.schedule_data = schedule
+        self.async_set_updated_data(TelemetryData(self._last_data))
+
+    def get_bem_schedule_soc(self, category: str) -> Optional[int]:
+        """Get Target SOC for a BEM schedule category."""
+        if not self.schedule_data:
+            return None
+        quantum_list = self.schedule_data.get(f"{category}TimeQuantum")
+        if not quantum_list:
+            return None
+        return quantum_list[0].get("soc")
+
+    async def set_bem_schedule_soc(self, category: str, soc_val: int) -> None:
+        """Set Target SOC for a BEM schedule category via API."""
+        schedule = await self.api.get_schedule()
+        quantum_list = schedule.get(f"{category}TimeQuantum")
+        
+        if not quantum_list:
+            default_block = {"start": 360, "end": 480, "sort": 0, "soc": int(soc_val), "electric": 0}
+            schedule[f"{category}TimeQuantum"] = [default_block]
+        else:
+            quantum_list[0]["soc"] = int(soc_val)
+            
+        await self.api.save_schedule(schedule)
+        self.schedule_data = schedule
+        self.async_set_updated_data(TelemetryData(self._last_data))
+
+    def get_bem_schedule_switch(self, category: str) -> bool:
+        """Get enabled state of a BEM schedule category."""
+        if not self.schedule_data:
+            return False
+        return self.schedule_data.get(f"{category}Switch", 0) == 1
+
+    async def set_bem_schedule_switch(self, category: str, enable: bool) -> None:
+        """Set enabled state of a BEM schedule category via API."""
+        schedule = await self.api.get_schedule()
+        schedule[f"{category}Switch"] = 1 if enable else 0
+        
+        # If enabling and the time quantum is empty, create a default block
+        if enable and not schedule.get(f"{category}TimeQuantum"):
+            default_block = {"start": 360, "end": 480, "sort": 0, "soc": 50, "electric": 0}
+            schedule[f"{category}TimeQuantum"] = [default_block]
+            
+        await self.api.save_schedule(schedule)
+        self.schedule_data = schedule
+        self.async_set_updated_data(TelemetryData(self._last_data))

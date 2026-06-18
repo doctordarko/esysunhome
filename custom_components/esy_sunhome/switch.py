@@ -26,6 +26,30 @@ async def async_setup_entry(
     async_add_entities([
         ESYSunhomePollingSwitch(coordinator=coordinator, entry=entry),
         ESYSunhomeBEMSwitch(coordinator=coordinator, entry=entry),
+        ESYSunhomeBEMScheduleSwitch(
+            coordinator=coordinator,
+            entry=entry,
+            category="charge",
+            translation_key="bem_charge_schedule",
+            name="BEM Charge Schedule",
+            icon="mdi:battery-charging-wireless",
+        ),
+        ESYSunhomeBEMScheduleSwitch(
+            coordinator=coordinator,
+            entry=entry,
+            category="discharge",
+            translation_key="bem_discharge_schedule",
+            name="BEM Discharge Schedule",
+            icon="mdi:battery-arrow-down",
+        ),
+        ESYSunhomeBEMScheduleSwitch(
+            coordinator=coordinator,
+            entry=entry,
+            category="release",
+            translation_key="bem_release_schedule",
+            name="BEM Release Schedule",
+            icon="mdi:battery-arrow-up",
+        ),
     ])
 
 
@@ -133,3 +157,44 @@ class ESYSunhomeBEMSwitch(EsySunhomeEntity, SwitchEntity):
         except Exception as err:
             _LOGGER.error("Failed to deactivate BEM: %s", err)
             raise HomeAssistantError(f"Failed to deactivate BEM: {err}") from err
+
+
+class ESYSunhomeBEMScheduleSwitch(EsySunhomeEntity, SwitchEntity):
+    """Switch to enable/disable a BEM schedule category."""
+
+    def __init__(
+        self,
+        coordinator,
+        entry: ConfigEntry,
+        category: str,
+        translation_key: str,
+        name: str,
+        icon: str,
+    ) -> None:
+        """Initialize the switch."""
+        super().__init__(coordinator)
+        self._category = category
+        self._attr_translation_key = translation_key
+        self._attr_name = name
+        self._attr_icon = icon
+        self._attr_unique_id = f"{entry.entry_id}_bem_{category}_schedule"
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if schedule is active."""
+        return self.coordinator.get_bem_schedule_switch(self._category)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Update state when coordinator data changes."""
+        self.async_write_ha_state()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn on the schedule."""
+        await self.coordinator.set_bem_schedule_switch(self._category, True)
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn off the schedule."""
+        await self.coordinator.set_bem_schedule_switch(self._category, False)
+        self.async_write_ha_state()
