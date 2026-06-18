@@ -2,6 +2,8 @@
 
 A Home Assistant integration for ESY Sunhome battery systems, providing monitoring and control via MQTT.
 
+Original work by https://github.com/branko-lazarevic/esysunhome, forked from https://github.com/phmarc/esysunhome
+
 ![Example Screenshot](/screenshot.png)
 
 ## ⚠️ Important: Firmware Requirement
@@ -45,7 +47,7 @@ Configure API or direct MQTT mode changes in the integration options.
 
 1. Go to **HACS → Integrations**
 2. Click the **⋮** menu → **Custom repositories**
-3. Add: `https://github.com/branko-lazarevic/esysunhome`
+3. Add: `https://github.com/doctordarko/esysunhome`
 4. Select category: **Integration** → Click **ADD**
 5. Find "ESY Sunhome" in HACS and click **Download**
 6. **Restart Home Assistant**
@@ -85,13 +87,12 @@ logger:
 
 ## Referral Codes
 
-If you're purchasing an ESY Sunhome battery, get **$50 off** using code: **AU1587** when registering in the ESY app.
+If you're purchasing an ESY Sunhome battery, get **$50 Cashback** using code: **AU5530**.
 
 Switching to Amber for wholesale electricity rates? Use code **QVLA4DT4** for **$120 off**.
 
 ## Resources
 
-- [Project Documentation](https://branko-lazarevic.github.io/esysunhome)
 - [Changelog](CHANGES.md)
 - [Release Notes](RELEASE_NOTES_v2.md)
 
