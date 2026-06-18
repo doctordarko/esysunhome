@@ -91,11 +91,6 @@ If you're purchasing an ESY Sunhome battery, get **$50 Cashback** using code: **
 
 Switching to Amber for wholesale electricity rates? Use code **QVLA4DT4** for **$120 off**.
 
-## Resources
-
-- [Changelog](CHANGES.md)
-- [Release Notes](RELEASE_NOTES_v2.md)
-
 ## License
 
 This project is licensed under the MIT License.
