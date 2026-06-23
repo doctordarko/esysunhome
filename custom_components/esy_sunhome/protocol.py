@@ -101,7 +101,7 @@ class PayloadParser:
 
         for i in range(segment_count):
             if pos + 8 > len(payload):
-                _LOGGER.warning("Not enough data for segment %d header", i)
+                _LOGGER.debug("Not enough data for segment %d header", i)
                 break
 
             # Each segment header is 8 bytes (4 x 16-bit values)
@@ -114,7 +114,7 @@ class PayloadParser:
             # Values length is params_num * 2 (each param is 16 bits)
             values_len = params_num * 2
             if pos + values_len > len(payload):
-                _LOGGER.warning("Segment %d: not enough data (need %d, have %d)",
+                _LOGGER.debug("Segment %d: not enough data (need %d, have %d)",
                                i, values_len, len(payload) - pos)
                 break
 
@@ -178,7 +178,7 @@ class DynamicTelemetryParser:
     def parse_message(self, data: bytes) -> Optional[Dict[str, Any]]:
         """Parse binary telemetry message into dict."""
         if not data or len(data) < HEADER_SIZE:
-            _LOGGER.warning("Message too short: %d bytes", len(data) if data else 0)
+            _LOGGER.debug("Message too short: %d bytes", len(data) if data else 0)
             return None
 
         # Parse header
