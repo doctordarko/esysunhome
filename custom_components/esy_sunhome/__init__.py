@@ -22,6 +22,12 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+# Pre-import diagnostics to avoid blocking call warnings on startup
+try:
+    from . import diagnostics  # noqa: F401
+except ImportError:
+    pass
+
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,

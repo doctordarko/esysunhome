@@ -18,7 +18,7 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .coordinator import EsySunhomeCoordinator
+from .coordinator import ESYSunhomeCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    coordinator: EsySunhomeCoordinator = entry.runtime_data
+    coordinator: ESYSunhomeCoordinator = entry.runtime_data
     
     # Get raw and parsed data
     raw_values = {}
