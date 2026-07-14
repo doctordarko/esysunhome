@@ -30,3 +30,14 @@ Thumbs.db
 
 # Local-only folders
 tests/
+certs/
+esy_certs/
+.agents/
+
+# Certificates and keys
+*.crt
+*.key
+*.pem
+
+# Local-only temp files
+*_dump.json
