@@ -50,6 +50,15 @@ async def async_setup_entry(
             name="BEM Release Schedule",
             icon="mdi:battery-arrow-up",
         ),
+        ESYSunhomeHoldingRegisterSwitch(
+            coordinator=coordinator,
+            entry=entry,
+            translation_key="feed_in_restriction",
+            name="Feed-in Restriction",
+            register_address=28,
+            data_key="hardLimitEnable",
+            icon="mdi:export-off",
+        ),
     ])
 
 
@@ -198,3 +207,65 @@ class ESYSunhomeBEMScheduleSwitch(EsySunhomeEntity, SwitchEntity):
         """Turn off the schedule."""
         await self.coordinator.set_bem_schedule_switch(self._category, False)
         self.async_write_ha_state()
+
+
+class ESYSunhomeHoldingRegisterSwitch(EsySunhomeEntity, SwitchEntity):
+    """Switch entity mapped to an inverter holding register (0 = Off, 1 = On)."""
+
+    def __init__(
+        self,
+        coordinator,
+        entry: ConfigEntry,
+        translation_key: str,
+        name: str,
+        register_address: int,
+        data_key: str,
+        icon: str,
+    ) -> None:
+        self._attr_translation_key = translation_key
+        self._attr_name = name
+        self._register_address = register_address
+        self._data_key = data_key
+        self._attr_icon = icon
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_{data_key}"
+
+    @property
+    def is_on(self) -> bool:
+        if not self.coordinator.data:
+            return False
+        if hasattr(self.coordinator.data, "get"):
+            val = self.coordinator.data.get(self._data_key)
+        else:
+            val = getattr(self.coordinator.data, self._data_key, None)
+        return val == 1
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self.async_write_ha_state()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        success = await self.coordinator.set_holding_register_mqtt(
+            self._register_address, 1
+        )
+        if success:
+            if self.coordinator.data:
+                if hasattr(self.coordinator.data, "_data") and isinstance(self.coordinator.data._data, dict):
+                    self.coordinator.data._data[self._data_key] = 1
+                    setattr(self.coordinator.data, self._data_key, 1)
+                elif isinstance(self.coordinator.data, dict):
+                    self.coordinator.data[self._data_key] = 1
+            self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        success = await self.coordinator.set_holding_register_mqtt(
+            self._register_address, 0
+        )
+        if success:
+            if self.coordinator.data:
+                if hasattr(self.coordinator.data, "_data") and isinstance(self.coordinator.data._data, dict):
+                    self.coordinator.data._data[self._data_key] = 0
+                    setattr(self.coordinator.data, self._data_key, 0)
+                elif isinstance(self.coordinator.data, dict):
+                    self.coordinator.data[self._data_key] = 0
+            self.async_write_ha_state()

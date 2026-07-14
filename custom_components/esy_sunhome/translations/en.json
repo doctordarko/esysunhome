@@ -221,6 +221,9 @@
             }
         },
         "switch": {
+            "feed_in_restriction": {
+                "name": "Feed-in Restriction"
+            },
             "heatingState": {
                 "name": "Battery Heating"
             },
