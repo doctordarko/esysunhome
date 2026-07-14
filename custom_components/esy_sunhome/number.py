@@ -32,6 +32,8 @@ BEM_SCHEDULE_SOCS = [
 HOLDING_REGISTER_NUMBERS = [
     ("on_grid_soc_limit", "Minimum SoC (On-Grid)", 75, "onGridSocLimit", "mdi:battery-charging-10"),
     ("off_grid_soc_limit", "Minimum SoC (Off-Grid)", 76, "offGridSocLimit", "mdi:battery-alert"),
+    ("anti_backflow_power_percentage", "Selling Power Limit (%)", 43, "antiBackflowPowerPercentage", "mdi:export-variant"),
+    ("max_output_power_percent", "Maximum Output Power Limit (%)", 44, "maxOutputPowerPercent", "mdi:gauge"),
 ]
 
 

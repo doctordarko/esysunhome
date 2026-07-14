@@ -212,6 +212,12 @@
             },
             "off_grid_soc_limit": {
                 "name": "Minimum SoC (Off-Grid)"
+            },
+            "anti_backflow_power_percentage": {
+                "name": "Selling Power Limit (%)"
+            },
+            "max_output_power_percent": {
+                "name": "Maximum Output Power Limit (%)"
             }
         },
         "switch": {
