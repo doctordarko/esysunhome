@@ -108,12 +108,8 @@ class ESYSunhomeCoordinator(DataUpdateCoordinator):
         self._topic_event = f"/ESY/PVVC/{device_sn}/EVENT"
         self._topic_alarm = f"/ESY/PVVC/{device_sn}/ALARM"
         
-        # Default segments to poll (same as app: 0, 1, 3, 6)
-        # Segment 0: Core data (addr 0-124) - power, SOC, mode
-        # Segment 1: Extended data
-        # Segment 3: BMS/Battery data
-        # Segment 6: Inverter/CT data
-        self._poll_segments = [0, 1, 3, 6]
+        # Default segments to poll (app uses 0, 1, 3, 6; we add 13 for holding registers/SoC limits)
+        self._poll_segments = [0, 1, 3, 6, 13]
         
         _LOGGER.info("Coordinator initialized for device %s", device_sn)
         _LOGGER.info("MQTT topics: UP=%s, EVENT=%s, DOWN=%s", 
@@ -631,3 +627,22 @@ class ESYSunhomeCoordinator(DataUpdateCoordinator):
         await self.api.save_schedule(schedule)
         self.schedule_data = schedule
         self.async_set_updated_data(TelemetryData(self._last_data))
+
+    async def set_holding_register_mqtt(self, register_address: int, value: int) -> bool:
+        """Write to a Modbus holding register via MQTT command."""
+        import time
+        from .protocol import ESYCommandBuilder
+        
+        msg_id = int(time.time())
+        config_id = 0
+        if self.protocol:
+            config_id = self.protocol.config_id
+            
+        command = ESYCommandBuilder.build_write_command(
+            register_address=register_address,
+            value=value,
+            msg_id=msg_id,
+            config_id=config_id,
+        )
+        
+        return await self.publish_command(command)

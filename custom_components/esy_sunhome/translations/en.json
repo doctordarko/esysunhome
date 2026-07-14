@@ -206,6 +206,12 @@
             },
             "soc_use_cutoff": {
                 "name": "SOC Use Cutoff"
+            },
+            "on_grid_soc_limit": {
+                "name": "Minimum SoC (On-Grid)"
+            },
+            "off_grid_soc_limit": {
+                "name": "Minimum SoC (Off-Grid)"
             }
         },
         "switch": {
